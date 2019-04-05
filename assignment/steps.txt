@@ -1,0 +1,25 @@
+STV
+
+Stage 1:
+only first picks are counted
+
+Stage 2:
+Any votes recevied for a candidate above the quota are transfered to the next choice.
+If no one else reaches the quota, candidate with lowest votes is eliminated
+
+Stage 3:
+All of the eliminated candidates votes (from last stage) are transfered to other candidates
+Repeat until all seats for election are filled 
+
+
+
+[[A, B, C,],          -> make a tuple out of it [([a],1000), ([a], 1000) ...]
+ [B,C,D]]
+
+ |
+ v
+
+ [(A,1000),
+  (B, 1000),   //Weights
+  (C, 0),
+  (D, 0)]

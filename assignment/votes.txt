@@ -1,0 +1,5 @@
+[["Red", "Green", "Orange", "Purple", "Yellow", "Blue"],
+["Red", "Purple", "Blue", "Green", "Yellow", "Orange"],
+["Blue", "Orange", "Purple", "Red", "Yellow", "Green"],
+["Red", "Purple", "Orange", "Yellow", "Blue", "Green"],
+["Green", "Red", "Blue", "Yellow", "Orange","Purple"]]
