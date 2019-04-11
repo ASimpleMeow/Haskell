@@ -25,18 +25,30 @@ rank vs = sortBy moreVotes [(v, count v vs) | v <- nub vs]
           where
             moreVotes (_, vc1) (_, vc2) = compare vc2 vc1
 
+votesOf :: Eq a => [[a]] -> a -> [[a]]
+votesOf votes a = [vote | vote <- votes, head vote == a]
+
+redoVotes :: (Ord a, Show a) => [[a]] -> (a,Int) -> Int -> [[a]]
+redoVotes votes winner q | surplus > 0 = take surplus winnerlessVotes ++ restVotes
+                         | otherwise = elim (fst winner) votes
+                          where
+                           winnerVotes = votesOf votes $ fst winner
+                           restVotes = [v | v <- votes, v `notElem` winnerVotes]
+                           winnerlessVotes = elim (fst winner) winnerVotes
+                           surplus = snd winner - q
+
 winners :: (Ord a, Show a) => Int -> Int -> [[a]] -> [a] -> [a]
 winners 0 _ _ elected = reverse elected
-winners n quota votes elected | snd (head rankedVotes) >= quota = winners (n-1) quota newVotes newElected
-                              | otherwise = winners n quota elimVotes elected
-                              where
-                                rankedVotes = rank $ head $ transpose votes
-                                newVotes = elim (fst $ head rankedVotes) votes
-                                elimVotes = elim (fst $ last rankedVotes) votes
-                                newElected = fst (head rankedVotes) : elected
+winners n q votes elected | snd (head rankedVotes) >= q = winners (n-1) q newVotes newElected
+                          | otherwise = winners n q elimVotes elected
+                           where
+                            rankedVotes = rank $ head $ transpose votes
+                            newVotes = redoVotes votes (head rankedVotes) q
+                            elimVotes = elim (fst $ last rankedVotes) votes
+                            newElected = fst (head rankedVotes) : elected
 
 stv :: Int -> FilePath -> IO ()
 stv n ballotsFile = do ballots <- ballotsList ballotsFile
-                       --let weightedBallots = [(v, 1000) | v <- ballots]
-                       print ("Quota : " ++ show (quota ballots n))
-                       print (winners n (quota ballots n) ballots [])
+                       let quota' = quota ballots n
+                       print ("Quota : " ++ show quota')
+                       print (winners n quota' ballots [])
