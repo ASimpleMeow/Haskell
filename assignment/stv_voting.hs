@@ -1,24 +1,7 @@
+import STVUtils
 import Debug.Trace
 import Data.List
-
-ballotsList :: String -> IO [[String]]
-ballotsList file = do ballots <- readFile file
-                      readIO ballots
-
-quota :: [[a]] -> Int -> Int
-quota vss n = (length vss `div` (n + 1)) + 1
-
-weight :: Int -> Int -> Int -> Int
-weight oldweight surplus total = oldweight * (surplus `div` total)
-
-count :: Eq a => a -> [a] -> Int
-count x = length . filter (x==)
-
-elim :: Eq a => a -> [[a]] -> [[a]]
-elim x = map $ filter (/=x)
-
-firsts :: [[a]] -> [a]
-firsts = map head
+import Data.Ord (comparing)
 
 rank :: Ord a => [a] -> [(a,Int)]
 rank vs = sortBy moreVotes [(v, count v vs) | v <- nub vs]
@@ -37,18 +20,23 @@ redoVotes votes winner q | surplus > 0 = take surplus winnerlessVotes ++ restVot
                            winnerlessVotes = elim (fst winner) winnerVotes
                            surplus = snd winner - q
 
-winners :: (Ord a, Show a) => Int -> Int -> [[a]] -> [a] -> [a]
-winners 0 _ _ elected = reverse elected
-winners n q votes elected | snd (head rankedVotes) >= q = winners (n-1) q newVotes newElected
-                          | otherwise = winners n q elimVotes elected
-                           where
-                            rankedVotes = rank $ head $ transpose votes
-                            newVotes = redoVotes votes (head rankedVotes) q
-                            elimVotes = elim (fst $ last rankedVotes) votes
-                            newElected = fst (head rankedVotes) : elected
+winners :: (Ord a, Show a) => Int -> Int -> Int -> [[a]] -> [(a, Int)] -> [(a, Int)]
+winners 0 _ _ _ elected = reverse elected
+winners n c q votes elected | length rankedVotes == 1 = reverse newElected
+                            | snd (head rankedVotes) >= q = winners (n-1) q (c+1) newVotes newElected
+                            | length rankedVotes <= n = reverse elected ++ [(v, c) | v <- map fst rankedVotes]
+                            | otherwise = winners n c q elimVotes elected
+                             where
+                              rankedVotes = rank $ head $ transpose $ filter (not.null) votes
+                              newVotes = filter (not.null) $ redoVotes votes (head rankedVotes) q
+                              elimVotes = elim (fst $ last rankedVotes) votes
+                              newElected = (fst (head rankedVotes), c) : elected
 
 stv :: Int -> FilePath -> IO ()
 stv n ballotsFile = do ballots <- ballotsList ballotsFile
                        let quota' = quota ballots n
                        print ("Quota : " ++ show quota')
-                       print (winners n quota' ballots [])
+                       let winners' = winners n 1 quota' ballots []
+                       print $ sortBy counts winners'
+                    where
+                        counts = comparing snd
