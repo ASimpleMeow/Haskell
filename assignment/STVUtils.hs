@@ -1,14 +1,11 @@
 module STVUtils where
 
-ballotsList :: String -> IO [[String]]
-ballotsList file = do ballots <- readFile file
-                      readIO ballots
+getBallots :: String -> IO [[String]]
+getBallots file = do ballots <- readFile file
+                     readIO ballots
 
-quota :: [[a]] -> Int -> Int
-quota vss n = (length vss `div` (n + 1)) + 1
-
-weight :: Int -> Int -> Int -> Int
-weight oldweight surplus total = oldweight * (surplus `div` total)
+getQuota :: [[a]] -> Int -> Int
+getQuota vss n = (length vss `div` (n + 1)) + 1
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x==)
