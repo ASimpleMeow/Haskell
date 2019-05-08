@@ -3,6 +3,7 @@
 ["Orange"],
 ["Orange"],
 ["Pear", "Orange"],
+["Pear", "Orange"],
 ["Chocolate", "Strawberry"],
 ["Chocolate", "Strawberry"],
 ["Chocolate", "Strawberry"],
